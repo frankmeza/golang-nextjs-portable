@@ -1,5 +1,5 @@
 [build]
-command = "git update-index --chmod=+x; ./build.sh"
+command = "chmod=+x ./build.sh && ./build.sh"
 functions = "functions"
 publish = "public"
 
