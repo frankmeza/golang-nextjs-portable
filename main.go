@@ -1,3 +1,6 @@
+// resources:
+// - https://blog.carlmjohnson.net/post/2020/how-to-host-golang-on-netlify-for-free/
+
 package main
 
 import (
