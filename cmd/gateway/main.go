@@ -5,10 +5,15 @@ package main
 
 import (
 	"embed"
+	"flag"
+	"fmt"
 	"io/fs"
 	"log"
 	"net/http"
 	"runtime/pprof"
+
+	"github.com/apex/gateway"
+	"github.com/carlmjohnson/feed2json"
 )
 
 //go:embed nextjs/dist
@@ -24,10 +29,27 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// The static Next.js app will be served under `/`.
-	http.Handle("/", http.FileServer(http.FS(distFS)))
-	// The API will be served under `/api`.
+	port := flag.Int("port", -1, "or else netlify")
+	flag.Parse()
+
+	listener := gateway.ListenAndServe
+	portStr := "n/a"
+
+	if *port != -1 {
+		portStr = fmt.Sprintf(":%d", *port)
+		listener = http.ListenAndServe
+		http.Handle("/", http.FileServer(http.FS(distFS)))
+	}
+
 	http.HandleFunc("/api", handleAPI)
+	http.Handle("/api/feed", feed2json.Handler(
+		feed2json.StaticURLInjector("https://news.ycombinator.com/rss"), nil, nil, nil),
+	)
+
+	log.Fatal(listener(portStr, nil))
+
+	// The static Next.js app will be served under `/`.
+	// The API will be served under `/api`.
 
 	// Start HTTP server at :8080.
 	log.Println("Starting HTTP server at http://localhost:8080 ...")
